@@ -1,0 +1,7 @@
+---
+- name: Converge invalid user
+  hosts: all
+  tasks:
+    - name: Create the not missing user
+      user:
+        name: notmissing

@@ -1,0 +1,110 @@
+---
+- name: Get user details
+  getent:
+    database: passwd
+    key: "{{ vim_user }}"
+    split: ":"
+  register: __vim_getent_passwd
+  when:
+    - "vim_user is not none"
+
+- name: Fail if no user or group has been specified
+  fail:
+    msg: "You must provide a valid value for vim_user and vim_group"
+  when:
+    - >-
+      (vim_user is none) or
+      (vim_user not in ansible_facts.getent_passwd)
+
+# tasks file for ansible-role-vim
+- name: Load platform variables
+  ansible.builtin.include_vars:
+    file: "{{ lookup('first_found', vars_files, errors='ignore') }}"
+  vars:
+    vars_files:
+      files:
+        - "{{ role_path }}/vars/{{ ansible_distribution | lower }}/\
+           {{ ansible_distribution_major_version }}.yml"
+        - "{{ role_path }}/vars/{{ ansible_distribution | lower }}/main.yml"
+        - "{{ role_path }}/vars/{{ ansible_os_family | lower }}/main.yml"
+        - "{{ role_path }}/vars/main.yml"
+
+- name: Set up role-specific facts based on some inputs and the OS distribution
+  include_tasks:
+    file: role_facts.yml
+
+- name: Load platform dependencies
+  include_tasks:
+    file: "{{ tasks_filename }}"
+  vars:
+    tasks_files:
+      - "{{ role_path }}/tasks/dependencies/\
+        {{ ansible_distribution | lower }}/\
+        {{ ansible_distribution_major_version }}.yml"
+      - "{{ role_path }}/tasks/dependencies/\
+        {{ ansible_distribution | lower }}/\
+        main.yml"
+      - "{{ role_path }}/tasks/dependencies/\
+        {{ ansible_os_family | lower }}.yml"
+      - "{{ role_path }}/tasks/dependencies/main.yml"
+  loop: "{{ query('first_found', tasks_files, errors='ignore') }}"
+  loop_control:
+    loop_var: tasks_filename
+
+- name: Create plugin path
+  file:
+    path: "{{ __vim_configdir + '/pack/' + ansible_role_name + '/start' }}"
+    state: directory
+    owner: "{{ vim_user }}"
+    group: "{{ vim_group }}"
+    mode: "0750"
+  when:
+    - "__vim_configdir is not none"
+
+- name: Git clone plugins
+  git:
+    repo: "{{ _vim_repo.repo }}"
+    dest: >-
+      {{ __vim_configdir + '/pack/' + ansible_role_name + '/start/' + _vim_repo.dest }}
+    version: "{{ _vim_repo.version | default('main') }}"
+  loop: "{{ vim_plugin_git_repos | default([]) }}"
+  loop_control:
+    loop_var: _vim_repo
+  when:
+    - "__vim_configdir is not none"
+
+- name: Update git clone directory permissions
+  file:
+    path: >-
+      {{ __vim_configdir + '/pack/' +
+            ansible_role_name + '/start/' + _vim_repo.dest }}
+    owner: "{{ _vim_repo.owner | default(vim_owner) }}"
+    group: "{{ _vim_repo.group | default(vim_group) }}"
+    mode: "{{ _vim_repo.mode | default('0750') }}"
+  loop: "{{ vim_plugin_git_repos | default([]) }}"
+  loop_control:
+    loop_var: _vim_repo
+  when:
+    - "__vim_configdir is not none"
+
+- include_tasks: get_plugin_url.yml
+  vars:
+    dest: "{{ _vim_url.dest }}"
+    src: "{{ _vim_url.src }}"
+    checksum: "{{ _vim_url.checksum | default(none) }}"
+    owner: "{{ _vim_url.owner | default(none) }}"
+    group: "{{ _vim_url.group | default(none) }}"
+    mode: "{{ _vim_url.mode | default(none) }}"
+  loop: "{{ vim_plugin_urls | default([]) }}"
+  loop_control:
+    loop_var: _vim_url
+  when:
+    - "__vim_configdir is not none"
+
+- name: Install .vimrc file
+  copy:
+    content: "{{ vim_vimrc }}"
+    dest: "{{ __vim_vimrc_path }}"
+    owner: "{{ vim_user }}"
+    group: "{{ vim_group }}"
+    mode: "{{ vim_vimrc_mode | default('0644') }}"

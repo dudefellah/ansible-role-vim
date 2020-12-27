@@ -1,0 +1,9 @@
+---
+- name: Install dependency packages
+  package:
+    name: "{{ __vim_packages }}"
+    state: present
+    update_cache: true
+  when:
+    - "__vim_packages is not none"
+    - "__vim_packages|length > 0"

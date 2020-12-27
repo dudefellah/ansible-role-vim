@@ -1,0 +1,29 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: "Include ansible-role-vim"
+      include_role:
+        name: "ansible-role-vim"
+      vars:
+        vim_user: alice
+        vim_group: alice
+        vim_vimrc: |
+          colorscheme koehler
+          syntax on
+          set encoding=utf-8
+          set modeline
+        vim_plugin_git_repos:
+          - repo: "https://github.com/udalov/kotlin-vim.git"
+            dest: "kotlin-vim.vim"
+            version: "f338707b2aa658aef4c0d98fd9748240859cf2a9"
+            owner: alice
+            group: alice
+            mode: "0755"
+        vim_plugin_urls:
+          - src: https://github.com/ctrlpvim/ctrlp.vim/archive/1.81.tar.gz
+            dest: "ctrlp.vim"
+            checksum: "sha256:9de452e7c3c2e1831007fdc69149368f9169837681ff46a09e1bca8cbdbebf93"
+            owner: alice
+            group: alice
+            mode: "0755"

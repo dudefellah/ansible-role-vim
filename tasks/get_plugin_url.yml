@@ -1,0 +1,115 @@
+---
+- name: Look for a plugin checksum cache file
+  stat:
+    path: >-
+      {{ __vim_configdir + '/pack/' +
+           ansible_role_name + '/start/' + dest + '/.checksum' }}
+  register: checksum_cache
+  when:
+    - "__vim_configdir is not none"
+
+- name: Load stored checksum
+  slurp:
+    path: >-
+      {{ __vim_configdir + '/pack/' +
+           ansible_role_name + '/start/' + dest + '/.checksum' }}
+  register: checksum_slurp
+  when:
+    - "__vim_configdir is not none"
+    - "checksum_cache.stat.exists"
+
+- block:
+    - name: Create tmpfile for vim plugin
+      tempfile:
+        state: directory
+      register: tmpdir
+      when:
+        - "__vim_configdir is not none"
+
+    - name: Git fetch remote plugins over HTTP
+      get_url:
+        url: "{{ src }}"
+        checksum: "{{ checksum }}"
+        dest: "{{ tmpdir.path }}/{{ src | basename }}"
+      when:
+        - "__vim_configdir is not none"
+
+    - name: Create the destdir
+      file:
+        path: "{{ tmpdir.path }}/dest"
+        state: directory
+        owner: "{{ owner | default(vim_user) }}"
+        group: "{{ group | default(vim_group) }}"
+        mode: "{{ mode | default('0750') }}"
+      when:
+        - "__vim_configdir is not none"
+
+    - name: Extract package
+      unarchive:
+        src: "{{ tmpdir.path }}/{{ src | basename }}"
+        dest: "{{ tmpdir.path }}/dest"
+        owner: "{{ owner | default(vim_user) }}"
+        group: "{{ group | default(vim_group) }}"
+        mode: "{{ mode | default('0750') }}"
+        remote_src: true
+      when:
+        - "__vim_configdir is not none"
+
+    - name: List files under tmpdir/dest
+      find:
+        paths: "{{ tmpdir.path }}/dest/"
+        file_type: directory
+      register: extracted_paths
+
+    - name: Look for vim pack dir
+      stat:
+        path: "{{ __vim_configdir + '/pack/' + ansible_role_name + '/start' }}"
+      register: packdir
+
+    - name: Create the pack dir, only if it doesn't already exist
+      file: # noqa 208
+        path: >-
+          {{ __vim_configdir + '/pack/' + ansible_role_name + '/start' }}
+        state: directory
+        owner: "{{ vim_user }}"
+        group: "{{ vim_group }}"
+        mode: "0755"
+      when:
+        - "not packdir.stat.exists"
+
+    - name: Synchronize extracted archive path into .vim path
+      synchronize:
+        src: "{{ extracted_paths.files[0].path + '/' }}"
+        dest: >-
+          {{ __vim_configdir + '/pack/'
+              + ansible_role_name + '/start/' + dest + '/' }}
+        recursive: true
+        delete: true
+      delegate_to: "{{ ansible_nodename }}"
+
+    - name: Cache the checksum if one is set
+      copy:
+        content: "{{ checksum }}"
+        dest: >-
+          {{ __vim_configdir + '/pack/' +
+               ansible_role_name + '/start/' + dest + '/.checksum' }}
+        owner: "{{ owner | default(vim_user) }}"
+        group: "{{ group | default(vim_group) }}"
+        mode: "{{ mode | default('0600') }}"
+      when:
+        - "checksum is defined"
+        - "checksum is not none"
+        - "__vim_configdir is not none"
+  always:
+    - name: Remove tmpdir
+      file:
+        path: "{{ tmpdir.path }}"
+        state: absent
+  when:
+    - >-
+      (checksum is none) or
+      (not checksum_cache.stat.exists) or
+      (
+        checksum_cache.stat.exists and
+        ((checksum_slurp.content | b64decode) != checksum)
+      )

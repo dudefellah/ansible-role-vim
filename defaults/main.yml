@@ -1,0 +1,71 @@
+---
+# defaults file for ansible-role-vim
+#
+# This is a list of packages to be installed with this role. Defaults
+# per-distribution are listed in vars/main.yml and will be used when this value
+# is set to `null`. You can set this value to an empty list ([]) to prevent
+# any packages from being installed with this role. This is useful if you
+# want to run it in a playbook that only has user-level permissions.
+vim_packages: null
+
+# This role is focused on installing and configuring vim for users, as such
+# you need to provide a user and group that will receive configuration
+# with this role. For multiple users, you'll need to run this role multiple
+# times.
+#
+# If no user and group is specified, the role will fail itself.
+vim_user: null
+vim_group: null
+
+# Specify the .vimrc you'd like to configure. If the path isn't absolute,
+# it will be considered to be relative to the `vim_user` home directory.
+vim_vimrc_path: .vimrc
+
+# This is the directory where additional items like plugins will be added.
+# A relative path indicates it is to be installed under the `vim_user` home
+# directory.
+vim_configdir: .vim
+
+# This is just a simple string to be applied to your .vimrc, so you can write
+# your .vimrc configuration however you'd like here.
+vim_vimrc: ""
+
+# When set to false, the .vimrc file will be modified with the `blockinfile`
+# module to apply your `vim_vimrc` changes. This is useful if you want
+# to use this role to make modifications on top of an existing vimrc file.
+# Set it to true if you just want your .vimrc contents specified in this
+# role to completely clobber your existing .vimrc contents.
+vim_vimrc_clobber: false
+
+# This is a list of git repos that can be added to your local plugin list
+# Each entry in the list is a mapping that has the following keys:
+#   repo: This is the source repo for your git clone
+#   version: The release version to fetch with git. Default is main
+#   dest: This is the destination path for your cloned repo. A relative path
+#         (eg. a non-leading slash) will be placed under your `vim_configdir`
+#         directory.
+#   owner (optional): If included, you can specify an owner here. Default is
+#                     the `vim_user`.
+#   group (optional): If included, you can specify the group ownership here.
+#                     Default is the `vim_group`.
+#   mode (optional):  If included, you can specify the permissions for
+#                     the cloned directory. Default is "0750"
+vim_plugin_git_repos: []
+
+# This is a list of downloadable archives to be installed as a local plugin
+# in your user's 'pack' directory.
+# Each entry in the list is a mapping that has the following keys:
+#   src: This is the source url for your download
+#   dest: This is the destination path for your cloned repo. A relative path
+#         (eg. a non-leading slash) will be placed under your `vim_configdir`
+#         directory.
+#   checksum (optional): A checksum that can be used to verify the download.
+#                        When this value is set, it can also help to prevent
+#                        downloading an archive that has already been retrieved
+#   owner (optional): If included, you can specify an owner here. Default is
+#                     the `vim_user`.
+#   group (optional): If included, you can specify the group ownership here.
+#                     Default is the `vim_group`.
+#   mode (optional):  If included, you can specify the permissions for
+#                     the cloned directory. Default is "0750"
+vim_plugin_urls: []

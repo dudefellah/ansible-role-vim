@@ -1,0 +1,49 @@
+---
+- name: Converge invalid user
+  hosts: all
+  tasks:
+    - name: Capture if the role failed or not
+      set_fact:
+        role_failed: false
+
+    - block:
+        - name: "Include ansible-role-vim"
+          include_role:
+            name: "ansible-role-vim"
+          vars:
+            vim_user: missing
+            vim_group: missing
+      rescue:
+        - name: Set failure to true
+          set_fact:
+            role_failed: true
+
+    - name: Fail if the role didn't fail
+      fail:
+        msg: "Role should have failed as a result of an an invalid user"
+      when:
+        - "not role_failed"
+
+- name: Converge valid user
+  hosts: all
+  tasks:
+    - name: Reset failed role fact
+      set_fact:
+        role_failed: false
+    - block:
+        - name: "Include ansible-role-vim"
+          include_role:
+            name: "ansible-role-vim"
+          vars:
+            vim_user: notmissing
+            vim_group: notmissing
+      rescue:
+        - name: Set failure to true
+          set_fact:
+            role_failed: true
+
+    - name: Fail if the role didn't fail
+      fail:
+        msg: "Role should not have failed since we supplied a valid user"
+      when:
+        - "role_failed"

@@ -1,0 +1,11 @@
+---
+# vars file for ansible-role-vim
+_vim_packages:
+  centos:
+    - git
+    - rsync
+    - vim
+  debian:
+    - git
+    - rsync
+    - vim

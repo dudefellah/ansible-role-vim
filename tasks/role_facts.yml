@@ -1,0 +1,50 @@
+---
+- name: Get user details - again
+  getent:
+    database: passwd
+    key: "{{ vim_user }}"
+    split: ":"
+
+# All facts in this task follow the same pattern.
+- name: Get the best vim packages value
+  set_fact:
+    __vim_packages: |-
+      {%- if vim_packages is not none -%}
+        {{ vim_packages }}
+      {%- elif (
+           (ansible_distribution|lower in _vim_packages) and
+           (_vim_packages[ansible_distribution|lower] is mapping) and
+           (ansible_distribution_major_version|string in __vim_packages[ansible_distribution|lower])
+         ) -%}
+         {{ _vim_packages[ansible_distribution|lower][ansible_distribution_major_version|string] }}
+      {%- elif (
+           (ansible_distribution|lower in _vim_packages) and
+           (_vim_packages[ansible_distribution|lower] is mapping) and
+           (ansible_distribution_major_version|int in _vim_packages[ansible_distribution|lower])
+         ) -%}
+         {{ _vim_packages[ansible_distribution|lower][ansible_distribution_major_version|int] }}
+      {%- elif (ansible_distribution|lower in _vim_packages) -%}
+         {{ _vim_packages[ansible_distribution|lower] }}
+      {%- else %}
+        {{ none }}
+      {%- endif -%}
+
+- name: Set the user home directory path
+  set_fact:
+    __vim_user_home: "{{ ansible_facts.getent_passwd[vim_user][4] }}"
+
+- name: Set file locations for absolute or relative-to-home paths
+  set_fact:
+    __vim_vimrc_path: |-
+      {%- if vim_vimrc_path.startswith('/') -%}
+        {{ vim_vimrc_path }}
+      {%- elif vim_vimrc_path is not none -%}
+        {{ __vim_user_home + '/' + vim_vimrc_path }}
+      {%- endif -%}
+
+    __vim_configdir: |-
+      {%- if vim_configdir.startswith('/') -%}
+        {{ vim_configdir }}
+      {%- elif vim_configdir is not none -%}
+        {{ __vim_user_home + '/' + vim_configdir }}
+      {%- endif -%}
