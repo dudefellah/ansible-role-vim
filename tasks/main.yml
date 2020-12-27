@@ -80,7 +80,8 @@
             ansible_role_name + '/start/' + _vim_repo.dest }}
     owner: "{{ _vim_repo.owner | default(vim_user) }}"
     group: "{{ _vim_repo.group | default(vim_group) }}"
-    mode: "{{ _vim_repo.mode | default('0750') }}"
+    mode: "{{ _vim_repo.mode | default('+rX,u+w,go-w') }}"
+    recurse: "{{ _vim_repo.recurse_perm | default(true) }}"
   loop: "{{ vim_plugin_git_repos | default([]) }}"
   loop_control:
     loop_var: _vim_repo
@@ -91,10 +92,11 @@
   vars:
     dest: "{{ _vim_url.dest }}"
     src: "{{ _vim_url.src }}"
-    checksum: "{{ _vim_url.checksum | default(none) }}"
-    owner: "{{ _vim_url.owner | default(none) }}"
-    group: "{{ _vim_url.group | default(none) }}"
-    mode: "{{ _vim_url.mode | default(none) }}"
+    checksum: "{{ _vim_url.checksum | default(omit) }}"
+    owner: "{{ _vim_url.owner | default(vim_user) }}"
+    group: "{{ _vim_url.group | default(vim_group) }}"
+    mode: "{{ _vim_url.mode | default(omit) }}"
+    recurse_perm: "{{ _vim_url.recurse_perm | default(true) }}"
   loop: "{{ vim_plugin_urls | default([]) }}"
   loop_control:
     loop_var: _vim_url

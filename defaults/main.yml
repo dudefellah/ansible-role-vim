@@ -49,7 +49,9 @@ vim_vimrc_clobber: false
 #   group (optional): If included, you can specify the group ownership here.
 #                     Default is the `vim_group`.
 #   mode (optional):  If included, you can specify the permissions for
-#                     the cloned directory. Default is "0750"
+#                     the cloned directory. Default is "+rX,u+w,go-w".
+#   recurse_perm (optional): Enable/disable recursive permissions changing.
+#                            The default is `true`.
 vim_plugin_git_repos: []
 
 # This is a list of downloadable archives to be installed as a local plugin
