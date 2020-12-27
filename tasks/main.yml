@@ -78,7 +78,7 @@
     path: >-
       {{ __vim_configdir + '/pack/' +
             ansible_role_name + '/start/' + _vim_repo.dest }}
-    owner: "{{ _vim_repo.owner | default(vim_owner) }}"
+    owner: "{{ _vim_repo.owner | default(vim_user) }}"
     group: "{{ _vim_repo.group | default(vim_group) }}"
     mode: "{{ _vim_repo.mode | default('0750') }}"
   loop: "{{ vim_plugin_git_repos | default([]) }}"
