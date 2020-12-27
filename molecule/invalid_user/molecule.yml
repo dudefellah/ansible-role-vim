@@ -20,10 +20,10 @@ provisioner:
   name: ansible
   playbooks:
     prepare: prepare.yml
-#  inventory:
-#    group_vars:
-#      # setting for the platform instance named 'instance'
-#      all:
-#        ansible_user: ansible
+  inventory:
+    group_vars:
+      # Set the role name for testing ing the ansible-runner image
+      all:
+        ansible_role_name: ansible-role-vim
 verifier:
   name: testinfra
