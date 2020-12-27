@@ -1,3 +1,5 @@
+[![pipeline status](https://gitlab.com/dudefellah/ansible-role-vim/badges/main/pipeline.svg)](https://gitlab.com/dudefellah/ansible-role-vim/-/commits/main)
+
 vim
 =========
 
