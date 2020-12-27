@@ -81,6 +81,7 @@
     owner: "{{ _vim_repo.owner | default(vim_user) }}"
     group: "{{ _vim_repo.group | default(vim_group) }}"
     recurse: "{{ _vim_repo.recurse_perm | default(true) }}"
+  changed_when: false
   loop: "{{ vim_plugin_git_repos | default([]) }}"
   loop_control:
     loop_var: _vim_repo
