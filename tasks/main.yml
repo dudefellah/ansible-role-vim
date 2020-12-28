@@ -53,7 +53,8 @@
 
 - name: Create plugin path
   file:
-    path: "{{ __vim_configdir + '/pack/' + ansible_role_name + '/start' }}"
+    path: >-
+        {{ __vim_configdir + '/pack/' + __vim_ansible_role_name + '/start' }}
     state: directory
     owner: "{{ vim_user }}"
     group: "{{ vim_group }}"
@@ -65,7 +66,8 @@
   git:
     repo: "{{ _vim_repo.repo }}"
     dest: >-
-      {{ __vim_configdir + '/pack/' + ansible_role_name + '/start/' + _vim_repo.dest }}
+      {{ __vim_configdir + '/pack/' + __vim_ansible_role_name
+           + '/start/' + _vim_repo.dest }}
     version: "{{ _vim_repo.version | default('main') }}"
   loop: "{{ vim_plugin_git_repos | default([]) }}"
   loop_control:
@@ -77,7 +79,7 @@
   file:
     path: >-
       {{ __vim_configdir + '/pack/' +
-            ansible_role_name + '/start/' + _vim_repo.dest }}
+            __vim_ansible_role_name + '/start/' + _vim_repo.dest }}
     owner: "{{ _vim_repo.owner | default(vim_user) }}"
     group: "{{ _vim_repo.group | default(vim_group) }}"
     recurse: "{{ _vim_repo.recurse_perm | default(true) }}"

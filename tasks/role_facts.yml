@@ -48,3 +48,10 @@
       {%- elif vim_configdir is not none -%}
         {{ __vim_user_home + '/' + vim_configdir }}
       {%- endif -%}
+
+- name: >-
+    In case the role name isn't detected properly, let's make sure something
+    is her
+  set_fact:
+    __vim_ansible_role_name: >-
+        {{ ansible_role_name | default('dudefellah.vim') }}

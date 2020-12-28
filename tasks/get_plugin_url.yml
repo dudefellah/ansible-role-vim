@@ -3,7 +3,7 @@
   stat:
     path: >-
       {{ __vim_configdir + '/pack/' +
-           ansible_role_name + '/start/' + dest + '/.checksum' }}
+           __vim_ansible_role_name + '/start/' + dest + '/.checksum' }}
   register: checksum_cache
   when:
     - "__vim_configdir is not none"
@@ -12,7 +12,7 @@
   slurp:
     path: >-
       {{ __vim_configdir + '/pack/' +
-           ansible_role_name + '/start/' + dest + '/.checksum' }}
+           __vim_ansible_role_name + '/start/' + dest + '/.checksum' }}
   register: checksum_slurp
   when:
     - "__vim_configdir is not none"
@@ -76,7 +76,10 @@
 
     - name: Look for vim pack dir
       stat:
-        path: "{{ __vim_configdir + '/pack/' + ansible_role_name + '/start' }}"
+        path: >-
+            {{
+                __vim_configdir + '/pack/' +
+                __vim_ansible_role_name + '/start' }}
       register: packdir
       when:
         - "tmpdir is defined"
@@ -85,7 +88,7 @@
     - name: Create the pack dir, only if it doesn't already exist
       file:
         path: >-
-          {{ __vim_configdir + '/pack/' + ansible_role_name + '/start' }}
+          {{ __vim_configdir + '/pack/' + __vim_ansible_role_name + '/start' }}
         state: directory
         owner: "{{ owner }}"
         group: "{{ group }}"
@@ -98,7 +101,7 @@
     - name: Use command to synchronize extracted archive path into .vim path # noqa 303
       command: >-
         rsync -rvz --delete "{{ extracted_paths.files[0].path + '/' }}"
-          "{{ __vim_configdir + '/pack/' + ansible_role_name +
+          "{{ __vim_configdir + '/pack/' + __vim_ansible_role_name +
                 '/start/' + dest + '/' }}"
       when:
         - "extracted_paths is defined"
@@ -109,7 +112,7 @@
       file:
         path: >-
           {{ __vim_configdir + '/pack/'
-              + ansible_role_name + '/start/' + dest }}
+              + __vim_ansible_role_name + '/start/' + dest }}
         owner: "{{ owner }}"
         group: "{{ group }}"
         mode: "{{ mode | default('+rX,u+w,go-w') }}"
@@ -119,7 +122,7 @@
         content: "{{ checksum }}"
         dest: >-
           {{ __vim_configdir + '/pack/' +
-               ansible_role_name + '/start/' + dest + '/.checksum' }}
+               __vim_ansible_role_name + '/start/' + dest + '/.checksum' }}
         owner: "{{ owner }}"
         group: "{{ group }}"
         mode: "{{ mode | default('0600') }}"
